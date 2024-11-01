@@ -1,0 +1,23 @@
+# Ignore binary output
+/bin/
+/*.exe
+/*.dll
+
+# Go build and cache files
+/go-build
+*.test
+
+# Ignore environment files
+**/.env
+
+# Vendor directory
+/vendor/
+
+# Logs
+*.log
+
+# Go dependencies
+go.sum
+
+# Ignore example files
+/test/examples/*
