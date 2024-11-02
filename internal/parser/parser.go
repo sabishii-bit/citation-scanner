@@ -19,8 +19,8 @@ type ParsedClaims struct {
 
 // Claim represents a single claim and its source.
 type Claim struct {
-	Claim  string `json:"claim"`
-	Source string `json:"source"`
+	Claim  string   `json:"claim"`
+	Source []string `json:"sources"`
 }
 
 // ParsePageClaims takes a URL, scrapes the content, and uses OpenAI to extract claims and their sources.
@@ -43,32 +43,34 @@ func ParsePageClaims(url string) (*ParsedClaims, error) {
 
 	// Create a new OpenAIClient instance with customized settings
 	openAIClient := openai.NewClient(apiKey,
-		openai.WithTemperature(0.15),
+		openai.WithTemperature(0.1),
 		openai.WithSystemRole("You are an expert in extracting claims from articles."),
 	)
 
 	// Step 1: Scrape the content of the page using the webscraper package
-	scrapedContent, err := webscraper.ScrapePage(url)
+	scrapedContent, err := webscraper.ScrapeBody(url)
 	if err != nil {
 		return nil, fmt.Errorf("failed to scrape the page: %v", err)
 	}
 
 	// Step 2: Prepare the prompt for OpenAI to identify claims and their sources
 	prompt := fmt.Sprintf(`
-		You are a parser that extracts claims and their sources from a scraped article.
-		Please read the following content and provide all the claims and their corresponding sources linked from the page.
-		Make sure that the claims extracted are direct quotes from the scraped page text.
-		Provide the actual citation links to the relevant sources, not the reference markers.
-		DO NOT wrap response with Markdown code-block formatting.
-		ONLY respond with the JSON object, do not include any additional text.
-		Content: "%s"
-		Example response:
+		You are a parser that extracts claims and their reference sources from a scraped webpage article.
+		Please read the following content and provide ALL of the claims, and their corresponding sources linked from the page.
+		Sources are identified by <a> tags in a claim or reference marker(s). All sources must be returned and associated to a claim. 
+		There can be more than one source to a claim, so return them in an array of strings.
+		Make sure that the claims extracted are direct quotes from the scraped page text; prefix and/or postfix with "..." if a quoted claim is a section of a sentence.
+		Provide the actual citation links to the associated sources, not the reference markers.
+		DO NOT wrap response with Markdown code-block formatting. DO NOT omit any claims or sources from the content in your response.
+		ALL CLAIMS AND SOURCES MUST BE RETURNED, REGARDLESS OF PROCESSING TIME OR LENGTH OF RESPONSE.
+		Respond only with a JSON object formatted as follows:
 		{
 			"claims": [
-				{"claim": "... Example claim 1", "source": "https://www.example-source-1.com/"},
-				{"claim": "... Example claim 2 ...", "source": "https://www.example-source-2.com/"}
+				{"claim": "... Example claim 1[34][35]", "sources": ["https://www.example-source-1.com/article1", "https://www.example-source-1.org/"]},
+				{"claim": "... Example claim 2[65] ...", "sources": ["https://www.example-source-2.com/"]}
 			]
 		}
+		Content: "%s"
 	`, scrapedContent)
 
 	// Step 3: Use OpenAIClient to get claims from the scraped content
@@ -77,7 +79,6 @@ func ParsePageClaims(url string) (*ParsedClaims, error) {
 		return nil, fmt.Errorf("failed to extract claims using OpenAI: %v", err)
 	}
 
-	fmt.Println("Parsed JSON:")
 	fmt.Println(response)
 
 	// Step 4: Parse the JSON response
@@ -85,6 +86,13 @@ func ParsePageClaims(url string) (*ParsedClaims, error) {
 	err = json.Unmarshal([]byte(response), &parsedClaims)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse OpenAI response as JSON: %v", err)
+	}
+
+	// Ensure that each claim's Source is an empty array if it's nil
+	for i := range parsedClaims.Claims {
+		if parsedClaims.Claims[i].Source == nil {
+			parsedClaims.Claims[i].Source = []string{}
+		}
 	}
 
 	// Step 5: Set the page URL in the parsed claims

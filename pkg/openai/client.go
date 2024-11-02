@@ -29,8 +29,8 @@ func NewClient(apiKey string, opts ...func(*OpenAIClient)) *OpenAIClient {
 		client:      client,
 		model:       openai.ChatModelGPT4o,          // Default model
 		systemRole:  "You are a helpful assistant.", // Default role
-		temperature: 0.15,                           // Default temperature
-		maxTokens:   15000,                          // Default max tokens in the return
+		temperature: 0.05,                           // Default temperature
+		maxTokens:   16300,                          // Default max tokens in the return
 	}
 
 	// Apply options to override defaults if provided
