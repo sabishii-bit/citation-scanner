@@ -10,6 +10,8 @@ import (
 
 var db *sql.DB
 
+const CacheTTL = 24 * time.Hour
+
 // InitializeCache sets up the SQLite database and creates the cache table if it doesn't exist.
 func InitializeCache() error {
 	// Connect to SQLite database (creates cache.db file if it doesn't exist)
@@ -41,19 +43,40 @@ func CloseCache() {
 	}
 }
 
-// getCachedResponse retrieves a cached response and timestamp for a given URL if available.
-func getCachedResponse(url string) (string, string, bool, error) {
+// isExpired checks if a given timestamp is older than the TTL duration.
+func isExpired(timestamp string) (bool, error) {
+	parsedTimestamp, err := time.Parse(time.RFC3339, timestamp)
+	if err != nil {
+		return false, fmt.Errorf("failed to parse timestamp: %v", err)
+	}
+	return time.Since(parsedTimestamp) > CacheTTL, nil
+}
+
+// getCachedResponse retrieves a cached response and checks if it is expired.
+func getCachedResponse(url string) (string, bool, error) {
 	var response string
 	var timestamp string
 	err := db.QueryRow("SELECT response, timestamp FROM cache WHERE url = ?", url).Scan(&response, &timestamp)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			// No cache entry for this URL
-			return "", "", false, nil
+			return "", false, nil
 		}
-		return "", "", false, fmt.Errorf("error checking cache for URL %s: %v", url, err)
+		return "", false, fmt.Errorf("error checking cache for URL %s: %v", url, err)
 	}
-	return response, timestamp, true, nil
+
+	// Check if the cache entry is expired
+	expired, err := isExpired(timestamp)
+	if err != nil {
+		return "", false, err
+	}
+	if expired {
+		// Cache entry is expired
+		return "", false, nil
+	}
+
+	// Cache entry is valid
+	return response, true, nil
 }
 
 // cacheResponse stores a new response for a given URL in the cache, updating the timestamp.
