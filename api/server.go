@@ -16,9 +16,9 @@ func StartServer() {
 	r := chi.NewRouter()
 
 	// Middleware
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use(APIKeyMiddleware) // Use API key middleware for authentication; applies to all routes
+	r.Use(middleware.Logger)    // Logs request details
+	r.Use(middleware.Recoverer) // Recovers from panics and logs them
+	r.Use(APIKeyMiddleware)     // Use API key middleware for authentication; applies to all routes
 
 	// Setup routes from routes.go
 	routes(r)

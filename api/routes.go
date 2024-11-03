@@ -7,4 +7,5 @@ import (
 // routes sets up all the API routes
 func routes(r chi.Router) {
 	r.Get("/", homeHandler)
+	r.Post("/parse", parsePageHandler)
 }
