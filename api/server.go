@@ -18,6 +18,7 @@ func StartServer() {
 	// Middleware
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(APIKeyMiddleware) // Use API key middleware for authentication; applies to all routes
 
 	// Setup routes from routes.go
 	routes(r)

@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/joho/godotenv"
 )
@@ -25,13 +24,10 @@ type Claim struct {
 
 // ParsePageClaims takes a URL, scrapes the content, and uses OpenAI to extract claims and their sources.
 func ParsePageClaims(url string) (*ParsedClaims, error) {
-	// Load the .env file located under ./configs/.env
-	cwd, err := os.Getwd()
-	if err != nil {
-		return nil, fmt.Errorf("Error getting current working directory: %v", err)
-	}
-	envPath := filepath.Join(cwd, "..", "..", "configs", ".env")
-	if err := godotenv.Load(envPath); err != nil {
+
+	// Load the .env file
+	if err := godotenv.Load("configs/.env"); err != nil {
+		fmt.Println("Error loading .env file")
 		return nil, fmt.Errorf("Error loading .env file: %v", err)
 	}
 
