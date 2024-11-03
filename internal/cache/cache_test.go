@@ -27,13 +27,13 @@ func TestCacheResponseAndGetCachedResponse(t *testing.T) {
 	response := "{\"message\": \"test response\"}"
 
 	// Store the response in the cache
-	err = cacheResponse(url, response)
+	err = CacheResponse(url, response)
 	if err != nil {
 		t.Fatalf("Failed to cache response: %v", err)
 	}
 
 	// Retrieve the cached response immediately, which should not be expired
-	cachedResponse, found, err := getCachedResponse(url)
+	cachedResponse, found, err := GetCachedResponse(url)
 	if err != nil {
 		t.Fatalf("Failed to get cached response: %v", err)
 	}
@@ -48,7 +48,7 @@ func TestCacheResponseAndGetCachedResponse(t *testing.T) {
 	time.Sleep(CacheTTL + 1*time.Second)
 
 	// Attempt to retrieve the response after TTL, should return as expired
-	cachedResponse, found, err = getCachedResponse(url)
+	cachedResponse, found, err = GetCachedResponse(url)
 	if err != nil {
 		t.Fatalf("Error retrieving cached response: %v", err)
 	}
@@ -71,13 +71,13 @@ func TestCacheUpdate(t *testing.T) {
 	updatedResponse := "{\"message\": \"updated response\"}"
 
 	// Store the initial response
-	err = cacheResponse(url, initialResponse)
+	err = CacheResponse(url, initialResponse)
 	if err != nil {
 		t.Fatalf("Failed to cache initial response: %v", err)
 	}
 
 	// Retrieve the initial cached response immediately
-	cachedResponse, found, err := getCachedResponse(url)
+	cachedResponse, found, err := GetCachedResponse(url)
 	if err != nil || !found {
 		t.Fatalf("Failed to retrieve initial cached response")
 	}
@@ -89,13 +89,13 @@ func TestCacheUpdate(t *testing.T) {
 	time.Sleep(1 * time.Second)
 
 	// Store the updated response, which should refresh the timestamp
-	err = cacheResponse(url, updatedResponse)
+	err = CacheResponse(url, updatedResponse)
 	if err != nil {
 		t.Fatalf("Failed to cache updated response: %v", err)
 	}
 
 	// Retrieve the updated cached response
-	cachedResponse, found, err = getCachedResponse(url)
+	cachedResponse, found, err = GetCachedResponse(url)
 	if err != nil || !found {
 		t.Fatalf("Failed to retrieve updated cached response")
 	}
@@ -105,7 +105,7 @@ func TestCacheUpdate(t *testing.T) {
 
 	// Verify that the updated entry is still valid within the TTL
 	time.Sleep(CacheTTL / 2)
-	cachedResponse, found, err = getCachedResponse(url)
+	cachedResponse, found, err = GetCachedResponse(url)
 	if err != nil || !found {
 		t.Fatalf("Expected cache entry to be valid within TTL, but it was expired or not found")
 	}

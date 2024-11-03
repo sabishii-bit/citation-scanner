@@ -62,7 +62,7 @@ func ParsePageClaims(url string) (*ParsedClaims, error) {
 		Respond only with a JSON object formatted as follows:
 		{
 			"claims": [
-				{"claim": "... Example claim 1[34][35]", "sources": ["https://www.example-source-1.com/article1", "https://www.example-source-1.org/"]},
+				{"claim": "... Example claim 1[34][35].", "sources": ["https://www.example-source-1.com/article1", "https://www.example-source-1.org/"]},
 				{"claim": "... Example claim 2[65] ...", "sources": ["https://www.example-source-2.com/"]}
 			]
 		}
