@@ -38,23 +38,12 @@ Citation Scanner is a Go-based project that uses a web scraper and ChatGPT to pa
 
 ## Usage
 
-### Running the Main Application
-
-To use Citation Scanner, you can run the main package:
-
-```sh
-cd cmd
-go run main.go
-```
-
-The script will scrape the provided webpage and use OpenAI to identify and extract claims and sources.
-
 ### Running the API Server
 
 To start the API server:
 
 ```sh
-cd api
+cd cmd/app
 go run main.go
 ```
 
